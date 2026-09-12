@@ -175,7 +175,7 @@
         
         let mainGridData = [];
         let targetData = [];
-        let targetType = '1x1';
+        let targetType = '1x2';
 
         const successSounds = ['Shatoura.mp3', 'Mumaiaza.mp3', 'Amazing.mp3'];
         const errorSounds = ['Wrong.mp3', 'TryAgain.mp3'];
@@ -413,7 +413,7 @@
             document.getElementById('message').innerText = '';
         }
 
-        /* دالة الفحص الذكية الشاملة لأي جزء يلمسه الطفل */
+        /* دالة الفحص المصححة والذكية */
         function checkMatch(r, c) {
             const msgElement = document.getElementById('message');
             let isMatched = false;
@@ -424,31 +424,38 @@
                 }
             } else if (currentLevel === 2) {
                 if (targetType === '1x2') {
-                    // فحص إن كان الضغط على الخلية الأولى (اليمين)
-                    if (c < gridSize - 1 && mainGridData[r][c] === targetData[0][0] && mainGridData[r][c+1] === targetData[0][1]) {
+                    // 1. الضغط على الخلية اليسرى
+                    if (c < gridSize - 1 && 
+                        mainGridData[r][c] === targetData[0][0] && 
+                        mainGridData[r][c+1] === targetData[0][1]) {
                         isMatched = true;
                     } 
-                    // فحص إن كان الضغط على الخلية الثانية (اليسار)
-                    else if (c > 0 && mainGridData[r][c-1] === targetData[0][0] && mainGridData[r][c] === targetData[0][1]) {
+                    // 2. الضغط على الخلية اليمنى
+                    else if (c > 0 && 
+                             mainGridData[r][c-1] === targetData[0][0] && 
+                             mainGridData[r][c] === targetData[0][1]) {
                         isMatched = true;
                     }
-                } else {
-                    // فحص إن كان الضغط على الخلية الأولى (الأعلى)
-                    if (r < gridSize - 1 && mainGridData[r][c] === targetData[0][0] && mainGridData[r+1][c] === targetData[1][0]) {
+                } else { // targetType === '2x1'
+                    // 1. الضغط على الخلية العليا
+                    if (r < gridSize - 1 && 
+                        mainGridData[r][c] === targetData[0][0] && 
+                        mainGridData[r+1][c] === targetData[1][0]) {
                         isMatched = true;
                     }
-                    // فحص إن كان الضغط على الخلية الثانية (الأسفل)
-                    else if (r > 0 && mainGridData[r-1][c] === targetData[0][0] && mainGridData[r][c] === targetData[1][0]) {
+                    // 2. الضغط على الخلية السفلى
+                    else if (r > 0 && 
+                             mainGridData[r-1][c] === targetData[0][0] && 
+                             mainGridData[r][c] === targetData[1][0]) {
                         isMatched = true;
                     }
                 }
             } else if (currentLevel === 3) {
-                // فحص النقاط الأربع المحتملة داخل المربع 2x2
                 const offsets = [
-                    [0, 0],   // أعلى يسار / بداية المربع
-                    [0, -1],  // أعلى يمين
-                    [-1, 0],  // أسفل يسار
-                    [-1, -1]  // أسفل يمين
+                    [0, 0],   // أعلى يمين
+                    [0, -1],  // أعلى يسار
+                    [-1, 0],  // أسفل يمين
+                    [-1, -1]  // أسفل يسار
                 ];
 
                 for (let [rOff, cOff] of offsets) {
