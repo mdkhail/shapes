@@ -129,20 +129,21 @@
             border: 1px solid #eee;
             border-radius: 8px;
             user-select: none;
-            transition: background-color 0.1s, border-color 0.1s;
+            transition: background-color 0.15s, border-color 0.15s;
             background-color: #fafafa;
             font-size: 28px;
             -webkit-tap-highlight-color: transparent;
         }
 
+        /* تحديد التظليل لشكل المستطيل */
         .cell.highlight {
-            background-color: #fff3e0;
-            border-color: #ff9800;
+            background-color: #fff3e0 !important;
+            border-color: #ff9800 !important;
         }
 
         .cell.invalid-hover {
-            background-color: #ffebee;
-            border-color: #f44336;
+            background-color: #ffebee !important;
+            border-color: #f44336 !important;
         }
     </style>
 </head>
@@ -288,53 +289,48 @@
             return document.getElementById(`cell-${r}-${c}`);
         }
 
+        /* التظليل كشكل مستطيل بناءً على عنصر البداية فقط */
         function highlightArea(r, c) {
             if (currentLevel === 1) {
-                getCellElement(r, c).classList.add('highlight');
+                getCellElement(r, c)?.classList.add('highlight');
             } else if (currentLevel === 2) {
                 if (targetType === '1x2') {
-                    if (c >= gridSize - 1) { getCellElement(r, c).classList.add('invalid-hover'); return; }
-                    getCellElement(r, c).classList.add('highlight');
-                    getCellElement(r, c+1).classList.add('highlight');
+                    if (c >= gridSize - 1) { getCellElement(r, c)?.classList.add('invalid-hover'); return; }
+                    getCellElement(r, c)?.classList.add('highlight');
+                    getCellElement(r, c+1)?.classList.add('highlight');
                 } else {
-                    if (r >= gridSize - 1) { getCellElement(r, c).classList.add('invalid-hover'); return; }
-                    getCellElement(r, c).classList.add('highlight');
-                    getCellElement(r+1, c).classList.add('highlight');
+                    if (r >= gridSize - 1) { getCellElement(r, c)?.classList.add('invalid-hover'); return; }
+                    getCellElement(r, c)?.classList.add('highlight');
+                    getCellElement(r+1, c)?.classList.add('highlight');
                 }
             } else if (currentLevel === 3) {
                 if (r >= gridSize - 1 || c >= gridSize - 1) {
-                    getCellElement(r, c).classList.add('invalid-hover');
+                    getCellElement(r, c)?.classList.add('invalid-hover');
                     return;
                 }
-                getCellElement(r, c).classList.add('highlight');
-                getCellElement(r, c+1).classList.add('highlight');
-                getCellElement(r+1, c).classList.add('highlight');
-                getCellElement(r+1, c+1).classList.add('highlight');
+                getCellElement(r, c)?.classList.add('highlight');
+                getCellElement(r, c+1)?.classList.add('highlight');
+                getCellElement(r+1, c)?.classList.add('highlight');
+                getCellElement(r+1, c+1)?.classList.add('highlight');
             }
         }
 
         function removeHighlight(r, c) {
             if (currentLevel === 1) {
-                if (getCellElement(r, c)) getCellElement(r, c).classList.remove('highlight');
+                getCellElement(r, c)?.classList.remove('highlight');
             } else if (currentLevel === 2) {
                 if (targetType === '1x2') {
-                    if (c >= gridSize - 1) { if(getCellElement(r, c)) getCellElement(r, c).classList.remove('invalid-hover'); return; }
-                    if(getCellElement(r, c)) getCellElement(r, c).classList.remove('highlight');
-                    if(getCellElement(r, c+1)) getCellElement(r, c+1).classList.remove('highlight');
+                    getCellElement(r, c)?.classList.remove('invalid-hover', 'highlight');
+                    getCellElement(r, c+1)?.classList.remove('highlight');
                 } else {
-                    if (r >= gridSize - 1) { if(getCellElement(r, c)) getCellElement(r, c).classList.remove('invalid-hover'); return; }
-                    if(getCellElement(r, c)) getCellElement(r, c).classList.remove('highlight');
-                    if(getCellElement(r+1, c)) getCellElement(r+1, c).classList.remove('highlight');
+                    getCellElement(r, c)?.classList.remove('invalid-hover', 'highlight');
+                    getCellElement(r+1, c)?.classList.remove('highlight');
                 }
             } else if (currentLevel === 3) {
-                if (r >= gridSize - 1 || c >= gridSize - 1) {
-                    if(getCellElement(r, c)) getCellElement(r, c).classList.remove('invalid-hover');
-                    return;
-                }
-                if(getCellElement(r, c)) getCellElement(r, c).classList.remove('highlight');
-                if(getCellElement(r, c+1)) getCellElement(r, c+1).classList.remove('highlight');
-                if(getCellElement(r+1, c)) getCellElement(r+1, c).classList.remove('highlight');
-                if(getCellElement(r+1, c+1)) getCellElement(r+1, c+1).classList.remove('highlight');
+                getCellElement(r, c)?.classList.remove('invalid-hover', 'highlight');
+                getCellElement(r, c+1)?.classList.remove('highlight');
+                getCellElement(r+1, c)?.classList.remove('highlight');
+                getCellElement(r+1, c+1)?.classList.remove('highlight');
             }
         }
 
@@ -413,7 +409,7 @@
             document.getElementById('message').innerText = '';
         }
 
-        /* دالة الفحص المصححة والذكية */
+        /* دالة الفحص الأصلية الصريحة (تعتمد دائماً على العنصر الأكبر/الأول) */
         function checkMatch(r, c) {
             const msgElement = document.getElementById('message');
             let isMatched = false;
@@ -424,52 +420,28 @@
                 }
             } else if (currentLevel === 2) {
                 if (targetType === '1x2') {
-                    // 1. الضغط على الخلية اليسرى
+                    // فحص العنصر الأول أفصولياً (يمين) والعنصر المجاور له
                     if (c < gridSize - 1 && 
                         mainGridData[r][c] === targetData[0][0] && 
                         mainGridData[r][c+1] === targetData[0][1]) {
                         isMatched = true;
-                    } 
-                    // 2. الضغط على الخلية اليمنى
-                    else if (c > 0 && 
-                             mainGridData[r][c-1] === targetData[0][0] && 
-                             mainGridData[r][c] === targetData[0][1]) {
-                        isMatched = true;
                     }
                 } else { // targetType === '2x1'
-                    // 1. الضغط على الخلية العليا
+                    // فحص العنصر الأول رأسياً (أعلى) والعنصر الذي تحته
                     if (r < gridSize - 1 && 
                         mainGridData[r][c] === targetData[0][0] && 
                         mainGridData[r+1][c] === targetData[1][0]) {
                         isMatched = true;
                     }
-                    // 2. الضغط على الخلية السفلى
-                    else if (r > 0 && 
-                             mainGridData[r-1][c] === targetData[0][0] && 
-                             mainGridData[r][c] === targetData[1][0]) {
-                        isMatched = true;
-                    }
                 }
             } else if (currentLevel === 3) {
-                const offsets = [
-                    [0, 0],   // أعلى يمين
-                    [0, -1],  // أعلى يسار
-                    [-1, 0],  // أسفل يمين
-                    [-1, -1]  // أسفل يسار
-                ];
-
-                for (let [rOff, cOff] of offsets) {
-                    let topR = r + rOff;
-                    let leftC = c + cOff;
-
-                    if (topR >= 0 && topR < gridSize - 1 && leftC >= 0 && leftC < gridSize - 1) {
-                        if (mainGridData[topR][leftC] === targetData[0][0] &&
-                            mainGridData[topR][leftC+1] === targetData[0][1] &&
-                            mainGridData[topR+1][leftC] === targetData[1][0] &&
-                            mainGridData[topR+1][leftC+1] === targetData[1][1]) {
-                            isMatched = true;
-                            break;
-                        }
+                // فحص المربع 2x2 بدءاً من زاوية الأيمن الأعلى
+                if (r < gridSize - 1 && c < gridSize - 1) {
+                    if (mainGridData[r][c] === targetData[0][0] &&
+                        mainGridData[r][c+1] === targetData[0][1] &&
+                        mainGridData[r+1][c] === targetData[1][0] &&
+                        mainGridData[r+1][c+1] === targetData[1][1]) {
+                        isMatched = true;
                     }
                 }
             }
