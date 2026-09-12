@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<link rel="manifest" href="manifest.json">
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>لعبة المطابقة الذكية</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f9;
+        }
+
+        .app-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            width: 100vw;
+            height: 100vh;
+            padding: 10px 12px;
+            gap: 10px;
+        }
+
+        h1 {
+            color: #333;
+            font-size: 20px;
+            text-align: center;
+            margin-top: 2px;
+        }
+
+        .levels-container {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            width: 100%;
+            max-width: 380px;
+        }
+
+        .level-btn {
+            flex: 1;
+            background-color: #e0e0e0;
+            border: none;
+            padding: 8px 4px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #333;
+            text-align: center;
+        }
+
+        .level-btn.active {
+            background-color: #ff9800;
+            color: white;
+            box-shadow: 0 2px 5px rgba(255,152,0,0.4);
+        }
+
+        .board-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+
+        h3 {
+            font-size: 14px;
+            margin-bottom: 6px;
+            color: #555;
+        }
+
+        .target-grid {
+            display: grid;
+            gap: 4px;
+            background-color: #fff;
+            padding: 6px;
+            border-radius: 10px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            border: 2px solid #ff9800;
+        }
+
+        .target-cell {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 1px solid #eee;
+            border-radius: 6px;
+            background-color: #fafafa;
+            width: 48px;
+            height: 48px;
+            font-size: 26px;
+        }
+
+        /* سطر النتيجة البديل لعنوان اللوحة الرئيسية */
+        #message {
+            font-size: 18px;
+            font-weight: bold;
+            height: 28px;
+            line-height: 28px;
+            text-align: center;
+            width: 100%;
+            margin-top: 4px;
+            margin-bottom: 4px;
+        }
+
+        .grid {
+            display: grid;
+            gap: 5px;
+            background-color: #fff;
+            padding: 10px;
+            border-radius: 14px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            width: min(92vw, 360px);
+            height: min(92vw, 360px);
+        }
+
+        .cell {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            user-select: none;
+            transition: background-color 0.1s, border-color 0.1s;
+            background-color: #fafafa;
+            font-size: 28px;
+        }
+
+        .cell.highlight {
+            background-color: #fff3e0;
+            border-color: #ff9800;
+        }
+
+        .cell.invalid-hover {
+            background-color: #ffebee;
+            border-color: #f44336;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-wrapper">
+        <h1>لعبة المطابقة الذكية</h1>
+        
+        <div class="levels-container">
+            <button class="level-btn active" onclick="changeLevel(1)">المستوى 1 (شكل)</button>
+            <button class="level-btn" onclick="changeLevel(2)">المستوى 2 (شكلين)</button>
+            <button class="level-btn" onclick="changeLevel(3)">المستوى 3 (4 أشكال)</button>
+        </div>
+
+        <div class="board-section">
+            <h3>البطاقة المطلوبة (الهدف)</h3>
+            <div id="targetGrid" class="target-grid"></div>
+        </div>
+
+        <!-- سطر النتيجة يحل محل عنوان اللوحة الرئيسية -->
+        <div id="message"></div>
+
+        <div id="mainGrid" class="grid"></div>
+    </div>
+
+    <script>
+        const shapes = ['🔴', '🟦', '🔺', '🟢', '⭐', '🔶'];
+        
+        let currentLevel = 1;
+        let gridSize = 5;
+        
+        let mainGridData = [];
+        let targetData = [];
+        let targetType = '1x1';
+
+        const successSounds = ['Shatoura.mp3', 'Mumaiaza.mp3', 'Amazing.mp3'];
+        const errorSounds = ['Wrong.mp3', 'TryAgain.mp3'];
+
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSynthBeep(isSuccess) {
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            if (isSuccess) {
+                osc.frequency.setValueAtTime(523.25, audioCtx.currentTime);
+                osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.3);
+            } else {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(220, audioCtx.currentTime);
+                osc.frequency.setValueAtTime(164.81, audioCtx.currentTime + 0.15);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.4);
+            }
+        }
+
+        function playRandomSound(soundList, isSuccess) {
+            const randomIndex = Math.floor(Math.random() * soundList.length);
+            const audio = new Audio(soundList[randomIndex]);
+            audio.play().catch(error => {
+                playSynthBeep(isSuccess);
+            });
+        }
+
+        function getRandomShape() {
+            return shapes[Math.floor(Math.random() * shapes.length)];
+        }
+
+        function changeLevel(level) {
+            currentLevel = level;
+            
+            const buttons = document.querySelectorAll('.level-btn');
+            buttons.forEach((btn, index) => {
+                if (index + 1 === level) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+
+            if (currentLevel === 1 || currentLevel === 2) {
+                gridSize = 5;
+            } else {
+                gridSize = 6;
+            }
+
+            initGame();
+        }
+
+        function initGame() {
+            generateMainGrid();
+            renderMainGrid();
+            setNewTarget();
+        }
+
+        function generateMainGrid() {
+            mainGridData = [];
+            for (let r = 0; r < gridSize; r++) {
+                let row = [];
+                for (let c = 0; c < gridSize; c++) {
+                    row.push(getRandomShape());
+                }
+                mainGridData.push(row);
+            }
+        }
+
+        function renderMainGrid() {
+            const gridElement = document.getElementById('mainGrid');
+            gridElement.style.gridTemplateColumns = `repeat(${gridSize}, 1fr)`;
+            gridElement.style.gridTemplateRows = `repeat(${gridSize}, 1fr)`;
+
+            let fontSize = currentLevel === 3 ? '22px' : '28px';
+
+            gridElement.innerHTML = '';
+            for (let r = 0; r < gridSize; r++) {
+                for (let c = 0; c < gridSize; c++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.id = `cell-${r}-${c}`;
+                    cell.style.fontSize = fontSize;
+                    cell.innerText = mainGridData[r][c];
+                    
+                    cell.onclick = () => checkMatch(r, c);
+                    cell.onmouseenter = () => highlightArea(r, c);
+                    cell.onmouseleave = () => removeHighlight(r, c);
+
+                    gridElement.appendChild(cell);
+                }
+            }
+        }
+
+        function getCellElement(r, c) {
+            return document.getElementById(`cell-${r}-${c}`);
+        }
+
+        function highlightArea(r, c) {
+            if (currentLevel === 1) {
+                getCellElement(r, c).classList.add('highlight');
+            } else if (currentLevel === 2) {
+                if (targetType === '1x2') {
+                    if (c >= gridSize - 1) { getCellElement(r, c).classList.add('invalid-hover'); return; }
+                    getCellElement(r, c).classList.add('highlight');
+                    getCellElement(r, c+1).classList.add('highlight');
+                } else {
+                    if (r >= gridSize - 1) { getCellElement(r, c).classList.add('invalid-hover'); return; }
+                    getCellElement(r, c).classList.add('highlight');
+                    getCellElement(r+1, c).classList.add('highlight');
+                }
+            } else if (currentLevel === 3) {
+                if (r >= gridSize - 1 || c >= gridSize - 1) {
+                    getCellElement(r, c).classList.add('invalid-hover');
+                    return;
+                }
+                getCellElement(r, c).classList.add('highlight');
+                getCellElement(r, c+1).classList.add('highlight');
+                getCellElement(r+1, c).classList.add('highlight');
+                getCellElement(r+1, c+1).classList.add('highlight');
+            }
+        }
+
+        function removeHighlight(r, c) {
+            if (currentLevel === 1) {
+                if (getCellElement(r, c)) getCellElement(r, c).classList.remove('highlight');
+            } else if (currentLevel === 2) {
+                if (targetType === '1x2') {
+                    if (c >= gridSize - 1) { if(getCellElement(r, c)) getCellElement(r, c).classList.remove('invalid-hover'); return; }
+                    if(getCellElement(r, c)) getCellElement(r, c).classList.remove('highlight');
+                    if(getCellElement(r, c+1)) getCellElement(r, c+1).classList.remove('highlight');
+                } else {
+                    if (r >= gridSize - 1) { if(getCellElement(r, c)) getCellElement(r, c).classList.remove('invalid-hover'); return; }
+                    if(getCellElement(r, c)) getCellElement(r, c).classList.remove('highlight');
+                    if(getCellElement(r+1, c)) getCellElement(r+1, c).classList.remove('highlight');
+                }
+            } else if (currentLevel === 3) {
+                if (r >= gridSize - 1 || c >= gridSize - 1) {
+                    if(getCellElement(r, c)) getCellElement(r, c).classList.remove('invalid-hover');
+                    return;
+                }
+                if(getCellElement(r, c)) getCellElement(r, c).classList.remove('highlight');
+                if(getCellElement(r, c+1)) getCellElement(r, c+1).classList.remove('highlight');
+                if(getCellElement(r+1, c)) getCellElement(r+1, c).classList.remove('highlight');
+                if(getCellElement(r+1, c+1)) getCellElement(r+1, c+1).classList.remove('highlight');
+            }
+        }
+
+        function setNewTarget() {
+            const targetElement = document.getElementById('targetGrid');
+            targetElement.innerHTML = '';
+
+            if (currentLevel === 1) {
+                targetElement.style.gridTemplateColumns = 'repeat(1, auto)';
+                targetElement.style.gridTemplateRows = 'repeat(1, auto)';
+                
+                let tr = Math.floor(Math.random() * gridSize);
+                let tc = Math.floor(Math.random() * gridSize);
+                targetData = [[mainGridData[tr][tc]]];
+
+                const cell = document.createElement('div');
+                cell.className = 'target-cell';
+                cell.innerText = targetData[0][0];
+                targetElement.appendChild(cell);
+
+            } else if (currentLevel === 2) {
+                targetType = Math.random() < 0.5 ? '1x2' : '2x1';
+                
+                if (targetType === '1x2') {
+                    targetElement.style.gridTemplateColumns = 'repeat(2, auto)';
+                    targetElement.style.gridTemplateRows = 'repeat(1, auto)';
+                    
+                    let tr = Math.floor(Math.random() * gridSize);
+                    let tc = Math.floor(Math.random() * (gridSize - 1));
+                    targetData = [[mainGridData[tr][tc], mainGridData[tr][tc+1]]];
+
+                    for (let c = 0; c < 2; c++) {
+                        let cell = document.createElement('div');
+                        cell.className = 'target-cell';
+                        cell.innerText = targetData[0][c];
+                        targetElement.appendChild(cell);
+                    }
+                } else {
+                    targetElement.style.gridTemplateColumns = 'repeat(1, auto)';
+                    targetElement.style.gridTemplateRows = 'repeat(2, auto)';
+                    
+                    let tr = Math.floor(Math.random() * (gridSize - 1));
+                    let tc = Math.floor(Math.random() * gridSize);
+                    targetData = [[mainGridData[tr][tc]], [mainGridData[tr+1][tc]]];
+
+                    for (let r = 0; r < 2; r++) {
+                        let cell = document.createElement('div');
+                        cell.className = 'target-cell';
+                        cell.innerText = targetData[r][0];
+                        targetElement.appendChild(cell);
+                    }
+                }
+
+            } else if (currentLevel === 3) {
+                targetElement.style.gridTemplateColumns = 'repeat(2, auto)';
+                targetElement.style.gridTemplateRows = 'repeat(2, auto)';
+                
+                let targetRow = Math.floor(Math.random() * (gridSize - 1));
+                let targetCol = Math.floor(Math.random() * (gridSize - 1));
+
+                targetData = [
+                    [mainGridData[targetRow][targetCol], mainGridData[targetRow][targetCol+1]],
+                    [mainGridData[targetRow+1][targetCol], mainGridData[targetRow+1][targetCol+1]]
+                ];
+
+                for (let r = 0; r < 2; r++) {
+                    for (let c = 0; c < 2; c++) {
+                        const cell = document.createElement('div');
+                        cell.className = 'target-cell';
+                        cell.innerText = targetData[r][c];
+                        targetElement.appendChild(cell);
+                    }
+                }
+            }
+
+            document.getElementById('message').innerText = '';
+        }
+
+        function checkMatch(r, c) {
+            const msgElement = document.getElementById('message');
+            let isMatched = false;
+
+            if (currentLevel === 1) {
+                if (mainGridData[r][c] === targetData[0][0]) {
+                    isMatched = true;
+                }
+            } else if (currentLevel === 2) {
+                if (targetType === '1x2') {
+                    if (c < gridSize - 1 && mainGridData[r][c] === targetData[0][0] && mainGridData[r][c+1] === targetData[0][1]) {
+                        isMatched = true;
+                    }
+                } else {
+                    if (r < gridSize - 1 && mainGridData[r][c] === targetData[0][0] && mainGridData[r+1][c] === targetData[1][0]) {
+                        isMatched = true;
+                    }
+                }
+            } else if (currentLevel === 3) {
+                if (r < gridSize - 1 && c < gridSize - 1 &&
+                    mainGridData[r][c] === targetData[0][0] &&
+                    mainGridData[r][c+1] === targetData[0][1] &&
+                    mainGridData[r+1][c] === targetData[1][0] &&
+                    mainGridData[r+1][c+1] === targetData[1][1]) {
+                    isMatched = true;
+                }
+            }
+
+            if (isMatched) {
+                playRandomSound(successSounds, true);
+                msgElement.innerText = 'أحسنت! تطابق صحيح 👏';
+                msgElement.style.color = '#4CAF50';
+                
+                document.getElementById('mainGrid').style.pointerEvents = 'none';
+                
+                setTimeout(() => {
+                    initGame();
+                    document.getElementById('mainGrid').style.pointerEvents = 'auto';
+                }, 3000);
+
+            } else {
+                playRandomSound(errorSounds, false);
+                msgElement.innerText = 'حاول مرة أخرى! ❌';
+                msgElement.style.color = '#F44336';
+                
+                document.getElementById('mainGrid').style.pointerEvents = 'none';
+                
+                setTimeout(() => {
+                    msgElement.innerText = '';
+                    document.getElementById('mainGrid').style.pointerEvents = 'auto';
+                }, 3000);
+            }
+        }
+
+        window.onload = initGame;
+    </script>
+</body>
+</html>
