@@ -471,5 +471,25 @@
 
         window.onload = initGame;
     </script>
+
+    <!-- مكان عرض العداد -->
+<div style="text-align: center; margin-top: 15px; font-family: sans-serif; font-size: 14px; color: #666;">
+    👁️ عدد الزيارات: <span id="visit-count">جاري التحميل...</span>
+</div>
+
+<script>
+    // غير كلمة my-awesome-game-123 بأي اسم فريد خاص بلعبتك
+    const namespace = "my-awesome-game-123";
+    const key = "visits";
+
+    fetch(`https://api.countapi.xyz/hit/${namespace}/${key}`)
+        .then(res => res.json())
+        .then(res => {
+            document.getElementById("visit-count").innerText = res.value;
+        })
+        .catch(err => {
+            document.getElementById("visit-count").innerText = "غير متاح";
+        });
+</script>
 </body>
 </html>
