@@ -26,19 +26,48 @@
             width: 100vw;
             height: 100vh;
             padding: 10px 12px;
-            gap: 10px;
+            gap: 8px;
         }
 
         h1 {
             color: #333;
-            font-size: 20px;
+            font-size: 18px;
             text-align: center;
-            margin-top: 2px;
         }
 
+        /* شريط اختيار المحتوى (حروف / أرقام / أشكال) */
+        .categories-container {
+            display: flex;
+            gap: 5px;
+            justify-content: center;
+            flex-wrap: wrap;
+            width: 100%;
+            max-width: 420px;
+        }
+
+        .cat-btn {
+            background-color: #e8eaf6;
+            border: 1px solid #c5cae9;
+            padding: 5px 8px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #3f51b5;
+        }
+
+        .cat-btn.active {
+            background-color: #3f51b5;
+            color: white;
+            border-color: #3f51b5;
+            box-shadow: 0 2px 4px rgba(63,81,181,0.3);
+        }
+
+        /* شريط اختيار المستوى */
         .levels-container {
             display: flex;
-            gap: 8px;
+            gap: 6px;
             justify-content: center;
             width: 100%;
             max-width: 380px;
@@ -48,9 +77,9 @@
             flex: 1;
             background-color: #e0e0e0;
             border: none;
-            padding: 8px 4px;
-            border-radius: 12px;
-            font-size: 13px;
+            padding: 6px 4px;
+            border-radius: 10px;
+            font-size: 12px;
             font-weight: bold;
             cursor: pointer;
             transition: all 0.2s;
@@ -72,8 +101,8 @@
         }
 
         h3 {
-            font-size: 14px;
-            margin-bottom: 6px;
+            font-size: 13px;
+            margin-bottom: 4px;
             color: #555;
         }
 
@@ -94,31 +123,31 @@
             border: 1px solid #eee;
             border-radius: 6px;
             background-color: #fafafa;
-            width: 48px;
-            height: 48px;
-            font-size: 26px;
+            width: 44px;
+            height: 44px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #222;
         }
 
         #message {
-            font-size: 18px;
+            font-size: 16px;
             font-weight: bold;
-            height: 28px;
-            line-height: 28px;
+            height: 24px;
+            line-height: 24px;
             text-align: center;
             width: 100%;
-            margin-top: 4px;
-            margin-bottom: 4px;
         }
 
         .grid {
             display: grid;
             gap: 5px;
             background-color: #fff;
-            padding: 10px;
+            padding: 8px;
             border-radius: 14px;
             box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-            width: min(92vw, 360px);
-            height: min(92vw, 360px);
+            width: min(90vw, 350px);
+            height: min(90vw, 350px);
         }
 
         .cell {
@@ -131,11 +160,12 @@
             user-select: none;
             transition: background-color 0.15s, border-color 0.15s;
             background-color: #fafafa;
-            font-size: 28px;
+            font-size: 26px;
+            font-weight: bold;
+            color: #222;
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* تحديد التظليل لشكل المستطيل */
         .cell.highlight {
             background-color: #fff3e0 !important;
             border-color: #ff9800 !important;
@@ -152,14 +182,24 @@
     <div class="app-wrapper">
         <h1>لعبة المطابقة الذكية</h1>
         
+        <!-- خيارات محتوى اللعبة -->
+        <div class="categories-container">
+            <button class="cat-btn active" onclick="changeCategory('shapes')">🔴 أشكال</button>
+            <button class="cat-btn" onclick="changeCategory('arabicLetters')">أ حروف عربية</button>
+            <button class="cat-btn" onclick="changeCategory('englishLetters')">A حروف إنجليزية</button>
+            <button class="cat-btn" onclick="changeCategory('hindiNumbers')">١٢٣ أرقام مشرقية</button>
+            <button class="cat-btn" onclick="changeCategory('englishNumbers')">123 أرقام إنجليزية</button>
+        </div>
+
+        <!-- خيارات المستوى -->
         <div class="levels-container">
-            <button class="level-btn active" onclick="changeLevel(1)">المستوى 1 (شكل)</button>
-            <button class="level-btn" onclick="changeLevel(2)">المستوى 2 (شكلين)</button>
-            <button class="level-btn" onclick="changeLevel(3)">المستوى 3 (4 أشكال)</button>
+            <button class="level-btn active" onclick="changeLevel(1)">المستوى 1 (عنصر)</button>
+            <button class="level-btn" onclick="changeLevel(2)">المستوى 2 (عنصرين)</button>
+            <button class="level-btn" onclick="changeLevel(3)">المستوى 3 (4 عناصر)</button>
         </div>
 
         <div class="board-section">
-            <h3>البطاقة المطلوبة (الهدف)</h3>
+            <h3>الهدف المطلوب</h3>
             <div id="targetGrid" class="target-grid"></div>
         </div>
 
@@ -169,8 +209,16 @@
     </div>
 
     <script>
-        const shapes = ['🔴', '🟦', '🔺', '🟢', '⭐', '🔶'];
-        
+        // مجموعات البيانات المختلفة
+        const datasets = {
+            shapes: ['🔴', '🟦', '🔺', '🟢', '⭐', '🔶', '⬛', '🟣'],
+            arabicLetters: ['أ', 'ب', 'ت', 'ث', 'ج', 'ح', 'خ', 'د', 'ذ', 'ر', 'ز', 'س', 'ش', 'ص', 'ض', 'ط', 'ظ', 'ع', 'غ', 'ف', 'ق', 'ك', 'ل', 'م', 'ن', 'هـ', 'و', 'ي'],
+            englishLetters: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'],
+            hindiNumbers: ['١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩', '٠'],
+            englishNumbers: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0']
+        };
+
+        let currentCategory = 'shapes';
         let currentLevel = 1;
         let gridSize = 5;
         
@@ -213,13 +261,22 @@
         function playRandomSound(soundList, isSuccess) {
             const randomIndex = Math.floor(Math.random() * soundList.length);
             const audio = new Audio(soundList[randomIndex]);
-            audio.play().catch(error => {
-                playSynthBeep(isSuccess);
-            });
+            audio.play().catch(() => playSynthBeep(isSuccess));
         }
 
-        function getRandomShape() {
-            return shapes[Math.floor(Math.random() * shapes.length)];
+        function getRandomItem() {
+            const list = datasets[currentCategory];
+            return list[Math.floor(Math.random() * list.length)];
+        }
+
+        function changeCategory(categoryKey) {
+            currentCategory = categoryKey;
+            
+            const buttons = document.querySelectorAll('.cat-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            initGame();
         }
 
         function changeLevel(level) {
@@ -234,12 +291,7 @@
                 }
             });
 
-            if (currentLevel === 1 || currentLevel === 2) {
-                gridSize = 5;
-            } else {
-                gridSize = 6;
-            }
-
+            gridSize = (currentLevel === 3) ? 6 : 5;
             initGame();
         }
 
@@ -254,7 +306,7 @@
             for (let r = 0; r < gridSize; r++) {
                 let row = [];
                 for (let c = 0; c < gridSize; c++) {
-                    row.push(getRandomShape());
+                    row.push(getRandomItem());
                 }
                 mainGridData.push(row);
             }
@@ -265,7 +317,7 @@
             gridElement.style.gridTemplateColumns = `repeat(${gridSize}, 1fr)`;
             gridElement.style.gridTemplateRows = `repeat(${gridSize}, 1fr)`;
 
-            let fontSize = currentLevel === 3 ? '22px' : '28px';
+            let fontSize = currentLevel === 3 ? '20px' : '26px';
 
             gridElement.innerHTML = '';
             for (let r = 0; r < gridSize; r++) {
@@ -289,7 +341,6 @@
             return document.getElementById(`cell-${r}-${c}`);
         }
 
-        /* التظليل كشكل مستطيل بناءً على عنصر البداية فقط */
         function highlightArea(r, c) {
             if (currentLevel === 1) {
                 getCellElement(r, c)?.classList.add('highlight');
@@ -409,7 +460,6 @@
             document.getElementById('message').innerText = '';
         }
 
-        /* دالة الفحص الأصلية الصريحة (تعتمد دائماً على العنصر الأكبر/الأول) */
         function checkMatch(r, c) {
             const msgElement = document.getElementById('message');
             let isMatched = false;
@@ -420,14 +470,12 @@
                 }
             } else if (currentLevel === 2) {
                 if (targetType === '1x2') {
-                    // فحص العنصر الأول أفصولياً (يمين) والعنصر المجاور له
                     if (c < gridSize - 1 && 
                         mainGridData[r][c] === targetData[0][0] && 
                         mainGridData[r][c+1] === targetData[0][1]) {
                         isMatched = true;
                     }
-                } else { // targetType === '2x1'
-                    // فحص العنصر الأول رأسياً (أعلى) والعنصر الذي تحته
+                } else {
                     if (r < gridSize - 1 && 
                         mainGridData[r][c] === targetData[0][0] && 
                         mainGridData[r+1][c] === targetData[1][0]) {
@@ -435,7 +483,6 @@
                     }
                 }
             } else if (currentLevel === 3) {
-                // فحص المربع 2x2 بدءاً من زاوية الأيمن الأعلى
                 if (r < gridSize - 1 && c < gridSize - 1) {
                     if (mainGridData[r][c] === targetData[0][0] &&
                         mainGridData[r][c+1] === targetData[0][1] &&
@@ -456,7 +503,7 @@
                 setTimeout(() => {
                     initGame();
                     document.getElementById('mainGrid').style.pointerEvents = 'auto';
-                }, 3000);
+                }, 2500);
 
             } else {
                 playRandomSound(errorSounds, false);
@@ -468,12 +515,11 @@
                 setTimeout(() => {
                     msgElement.innerText = '';
                     document.getElementById('mainGrid').style.pointerEvents = 'auto';
-                }, 3000);
+                }, 2000);
             }
         }
 
         window.onload = initGame;
     </script>
-
 </body>
 </html>
