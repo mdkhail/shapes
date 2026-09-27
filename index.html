@@ -475,19 +475,10 @@
         window.onload = initGame;
     </script>
 
-    <script>
-    const namespace = "لعبة المطابقة الذكية";
-    const key = "visits";
-
-    fetch(`https://api.countapi.xyz/hit/${namespace}/${key}`)
-        .then(res => res.json())
-        .then(res => {
-            document.getElementById("visit-count").innerText = res.value;
-        })
-        .catch(err => {
-            document.getElementById("visit-count").innerText = "غير متاح";
-        });
-</script>
+    <div style="text-align: center; margin-top: 15px;">
+    <p style="font-size: 12px; color: #777;">عدد زيارات اللعبة:</p>
+    <img src="https://profile-counter.glitch.me/my-game-unique-id/count.svg" alt="عدد الزيارات" />
+</div>
 
 </body>
 </html>
