@@ -5,7 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>لعبة المطابقة الذكية</title>
     
-    <!-- استدعاء خط Cairo الموحد من Google Fonts لحل مشكلة تمييز الأرقام المشرقية (٢ و ٣) -->
+    <!-- 1. حل مشكلة أيقونة الموقع favicon.ico 404 -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎮</text></svg>">
+
+    <!-- استدعاء خط Cairo الموحد من Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;700;900&display=swap" rel="stylesheet">
@@ -15,7 +18,7 @@
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Cairo', sans-serif; /* تطبيق الخط الموحد على كل العناصر */
+            font-family: 'Cairo', sans-serif;
         }
         html, body {
             width: 100%;
@@ -42,7 +45,6 @@
             font-weight: 900;
         }
 
-        /* شريط اختيار المحتوى */
         .categories-container {
             display: flex;
             gap: 4px;
@@ -71,7 +73,6 @@
             box-shadow: 0 2px 4px rgba(63,81,181,0.3);
         }
 
-        /* شريط التحكم المتقدم (المستوى + وضع الألوان) */
         .controls-container {
             display: flex;
             gap: 6px;
@@ -201,6 +202,19 @@
             background-color: #ffebee !important;
             border-color: #f44336 !important;
         }
+
+        /* تنسيق شريط العداد */
+        .counter-box {
+            text-align: center;
+            font-size: 11px;
+            color: #666;
+            margin-top: 4px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
     </style>
 </head>
 <body>
@@ -208,7 +222,6 @@
     <div class="app-wrapper">
         <h1>لعبة المطابقة الذكية</h1>
         
-        <!-- خيارات المحتوى -->
         <div class="categories-container">
             <button class="cat-btn active" onclick="changeCategory('shapes')">🔴 أشكال</button>
             <button class="cat-btn" onclick="changeCategory('arabicLetters')">أ حروف عربية</button>
@@ -217,7 +230,6 @@
             <button class="cat-btn" onclick="changeCategory('englishNumbers')">123 أرقام إنجليزية</button>
         </div>
 
-        <!-- تحكم المستوى ووضع الألوان المتقدم -->
         <div class="controls-container">
             <button class="level-btn active" onclick="changeLevel(1)">المستوى 1</button>
             <button class="level-btn" onclick="changeLevel(2)">المستوى 2</button>
@@ -233,6 +245,12 @@
         <div id="message"></div>
 
         <div id="mainGrid" class="grid"></div>
+
+        <!-- 2. حل مشكلة العداد: شارة SVG تعمل 100% بدون جافاسكربت أو حظر CORS -->
+        <div class="counter-box">
+            <span>👁️ إجمالي الزيارات:</span>
+            <img src="https://profile-counter.glitch.me/mdkhail-smart-match-2026/count.svg" alt="الزيارات" style="vertical-align: middle; height: 18px;">
+        </div>
     </div>
 
     <script>
@@ -244,15 +262,7 @@
             englishNumbers: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0']
         };
 
-        // الألوان المتاحة لتحدي التمييز البصري الملون
-        const colorPalette = [
-            '#e53935', // أحمر
-            '#1e88e5', // أزرق
-            '#43a047', // أخضر
-            '#fb8c00', // برتقالي
-            '#8e24aa', // بنفسجي
-            '#00acc1'  // تركواز
-        ];
+        const colorPalette = ['#e53935', '#1e88e5', '#43a047', '#fb8c00', '#8e24aa', '#00acc1'];
 
         let currentCategory = 'shapes';
         let currentLevel = 1;
@@ -266,32 +276,45 @@
         const successSounds = ['Shatoura.mp3', 'Mumaiaza.mp3', 'Amazing.mp3'];
         const errorSounds = ['Wrong.mp3', 'TryAgain.mp3'];
 
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        // 3. حل مشكلة AudioContext: إنشاء الكائن كسكون وتهيئته عند الحاجة فقط
+        let audioCtx = null;
 
-        function playSynthBeep(isSuccess) {
+        function getAudioContext() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
             if (audioCtx.state === 'suspended') {
                 audioCtx.resume();
             }
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
+            return audioCtx;
+        }
 
-            if (isSuccess) {
-                osc.frequency.setValueAtTime(523.25, audioCtx.currentTime);
-                osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1);
-                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.3);
-            } else {
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(220, audioCtx.currentTime);
-                osc.frequency.setValueAtTime(164.81, audioCtx.currentTime + 0.15);
-                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.4);
+        function playSynthBeep(isSuccess) {
+            try {
+                const ctx = getAudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+
+                if (isSuccess) {
+                    osc.frequency.setValueAtTime(523.25, ctx.currentTime);
+                    osc.frequency.setValueAtTime(659.25, ctx.currentTime + 0.1);
+                    gain.gain.setValueAtTime(0.1, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.3);
+                } else {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(220, ctx.currentTime);
+                    osc.frequency.setValueAtTime(164.81, ctx.currentTime + 0.15);
+                    gain.gain.setValueAtTime(0.1, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.4);
+                }
+            } catch (e) {
+                // تجنب التوقف في حال قيود المتصفح الصارمة
             }
         }
 
@@ -305,7 +328,6 @@
             const list = datasets[currentCategory];
             const val = list[Math.floor(Math.random() * list.length)];
             
-            // خيار اللون: إذا كان وضع الألوان مفعلاً ولسنا في قسم الأشكال
             let color = '#222222';
             if (isColorMode && currentCategory !== 'shapes') {
                 color = colorPalette[Math.floor(Math.random() * colorPalette.length)];
@@ -523,7 +545,6 @@
             document.getElementById('message').innerText = '';
         }
 
-        // فحص التطابق (الحرف + اللون)
         function isItemMatch(item1, item2) {
             return item1.val === item2.val && item1.color === item2.color;
         }
@@ -589,53 +610,5 @@
 
         window.onload = initGame;
     </script>
-
-    <!-- شريط عرض مجموع الزيارات الكلي -->
-<div style="text-align: center; font-size: 12px; color: #666; margin-top: 6px; font-weight: bold;">
-    👁️ إجمالي زيارات اللعبة: <span id="globalVisitCount" style="color: #2e7d32; font-size: 14px;">...</span>
-</div>
-
-<!-- شريط عرض مجموع الزيارات الكلي -->
-<div style="text-align: center; font-size: 12px; color: #666; margin-top: 6px; font-weight: bold;">
-    👁️ إجمالي زيارات اللعبة: <span id="globalVisitCount" style="color: #2e7d32; font-size: 14px;">...</span>
-</div>
-
-<script>
-    async function fetchGlobalVisits() {
-        const countElement = document.getElementById('globalVisitCount');
-        
-        // 1. فحص ما إذا كانت الصفحة تفتح محلياً للتجربة (Localhost / File)
-        const isLocal = window.location.hostname === 'localhost' || 
-                        window.location.hostname === '127.0.0.1' || 
-                        window.location.protocol === 'file:';
-
-        // 2. فحص ما إذا كان الزائر قد زار الصفحة بالفعل في هذه الجلسة
-        const hasVisitedInSession = sessionStorage.getItem('game_visited_session');
-
-        // تحديد الرابط: زيادة العداد (up) فقط للزائر الجديد وعلى GitHub Pages
-        let apiUrl = 'https://api.counterapi.dev/v1/smart-match-game-2026/visits/';
-        
-        if (!isLocal && !hasVisitedInSession) {
-            apiUrl += 'up'; // زيادة العداد
-            sessionStorage.setItem('game_visited_session', 'true');
-        }
-
-        try {
-            const response = await fetch(apiUrl);
-            const data = await response.json();
-            
-            if (data && typeof data.count !== 'undefined') {
-                countElement.innerText = data.count;
-            } else {
-                countElement.innerText = '1';
-            }
-        } catch (error) {
-            // في حال وجود حجب للإعلانات لدى الزائر أو انقطاع الإنترنت
-            countElement.innerText = 'متاح أوفلاين';
-        }
-    }
-
-    fetchGlobalVisits();
-</script>
 </body>
 </html>
