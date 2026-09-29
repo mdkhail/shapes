@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>لعبة المطابقة الذكية</title>
     
-    <!-- 1. حل مشكلة أيقونة الموقع favicon.ico 404 -->
+    <!-- أيقونة الموقع -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎮</text></svg>">
 
-    <!-- استدعاء خط Cairo الموحد من Google Fonts -->
+    <!-- خط Cairo الموحد من Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;700;900&display=swap" rel="stylesheet">
@@ -34,36 +34,41 @@
             justify-content: flex-start;
             width: 100vw;
             height: 100vh;
-            padding: 8px 12px;
-            gap: 6px;
+            padding: 8px 10px;
+            gap: 5px;
         }
 
         h1 {
             color: #333;
-            font-size: 17px;
+            font-size: 16px;
             text-align: center;
             font-weight: 900;
         }
 
+        /* شريط التنسيق المرن للأقسام المتعددة */
         .categories-container {
             display: flex;
             gap: 4px;
             justify-content: center;
             flex-wrap: wrap;
             width: 100%;
-            max-width: 440px;
+            max-width: 460px;
+            max-height: 90px;
+            overflow-y: auto;
+            padding: 2px;
         }
 
         .cat-btn {
             background-color: #e8eaf6;
             border: 1px solid #c5cae9;
-            padding: 4px 7px;
+            padding: 3px 6px;
             border-radius: 8px;
-            font-size: 11px;
+            font-size: 10.5px;
             font-weight: 700;
             cursor: pointer;
             transition: all 0.2s;
             color: #3f51b5;
+            white-space: nowrap;
         }
 
         .cat-btn.active {
@@ -75,7 +80,7 @@
 
         .controls-container {
             display: flex;
-            gap: 6px;
+            gap: 5px;
             justify-content: center;
             align-items: center;
             width: 100%;
@@ -86,7 +91,7 @@
             flex: 1;
             background-color: #e0e0e0;
             border: none;
-            padding: 5px 3px;
+            padding: 4px 2px;
             border-radius: 8px;
             font-size: 11px;
             font-weight: 700;
@@ -105,7 +110,7 @@
         .color-toggle-btn {
             background-color: #e0f2f1;
             border: 1px solid #80cbd4;
-            padding: 5px 8px;
+            padding: 4px 7px;
             border-radius: 8px;
             font-size: 11px;
             font-weight: 700;
@@ -129,8 +134,8 @@
         }
 
         h3 {
-            font-size: 12px;
-            margin-bottom: 3px;
+            font-size: 11px;
+            margin-bottom: 2px;
             color: #555;
             font-weight: 700;
         }
@@ -139,7 +144,7 @@
             display: grid;
             gap: 4px;
             background-color: #fff;
-            padding: 5px;
+            padding: 4px;
             border-radius: 10px;
             box-shadow: 0 2px 6px rgba(0,0,0,0.1);
             border: 2px solid #ff9800;
@@ -152,30 +157,30 @@
             border: 1px solid #eee;
             border-radius: 6px;
             background-color: #fafafa;
-            width: 42px;
-            height: 42px;
-            font-size: 24px;
+            width: 40px;
+            height: 40px;
+            font-size: 23px;
             font-weight: 900;
         }
 
         #message {
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 900;
-            height: 22px;
-            line-height: 22px;
+            height: 20px;
+            line-height: 20px;
             text-align: center;
             width: 100%;
         }
 
         .grid {
             display: grid;
-            gap: 5px;
+            gap: 4px;
             background-color: #fff;
-            padding: 8px;
+            padding: 6px;
             border-radius: 14px;
             box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-            width: min(88vw, 340px);
-            height: min(88vw, 340px);
+            width: min(86vw, 330px);
+            height: min(86vw, 330px);
         }
 
         .cell {
@@ -188,7 +193,7 @@
             user-select: none;
             transition: background-color 0.15s, border-color 0.15s;
             background-color: #fafafa;
-            font-size: 25px;
+            font-size: 24px;
             font-weight: 900;
             -webkit-tap-highlight-color: transparent;
         }
@@ -203,12 +208,11 @@
             border-color: #f44336 !important;
         }
 
-        /* تنسيق شريط العداد */
         .counter-box {
             text-align: center;
             font-size: 11px;
             color: #666;
-            margin-top: 4px;
+            margin-top: 2px;
             font-weight: bold;
             display: flex;
             align-items: center;
@@ -222,8 +226,13 @@
     <div class="app-wrapper">
         <h1>لعبة المطابقة الذكية</h1>
         
+        <!-- شريط اختيار المحتوى بعد إضافة الأقسام الجديدة -->
         <div class="categories-container">
             <button class="cat-btn active" onclick="changeCategory('shapes')">🔴 أشكال</button>
+            <button class="cat-btn" onclick="changeCategory('fruits')">🍎 فواكه</button>
+            <button class="cat-btn" onclick="changeCategory('vegetables')">🥦 خضروات</button>
+            <button class="cat-btn" onclick="changeCategory('animals')">🦁 حيوانات</button>
+            <button class="cat-btn" onclick="changeCategory('cartoons')">🤖 شخصيات</button>
             <button class="cat-btn" onclick="changeCategory('arabicLetters')">أ حروف عربية</button>
             <button class="cat-btn" onclick="changeCategory('englishLetters')">A حروف إنجليزية</button>
             <button class="cat-btn" onclick="changeCategory('hindiNumbers')">١٢٣ أرقام مشرقية</button>
@@ -246,14 +255,21 @@
 
         <div id="mainGrid" class="grid"></div>
 
-<div class="counter-box">
-    <span>👁️ إجمالي الزيارات:</span>
-    <img src="https://api.visitorbadge.io/api/visitors?path=mdkhail.github.io.shapes&label=%D8%A7%D9%84%D8%B2%D9%8A%D8%A7%D8%B1%D8%A7%D8%AA&countColor=%232e7d32" alt="الزيارات" style="vertical-align: middle; height: 20px;">
-</div>
+        <!-- عداد الزيارات الخاص بـ GitHub Pages -->
+        <div class="counter-box">
+            <span>👁️ إجمالي الزيارات:</span>
+            <img src="https://api.visitorbadge.io/api/visitors?path=mdkhail.github.io.shapes&label=%D8%A7%D9%84%D8%B2%D9%8A%D8%A7%D8%B1%D8%A7%D8%AA&countColor=%232e7d32" alt="الزيارات" style="vertical-align: middle; height: 18px;">
+        </div>
+    </div>
 
     <script>
+        // تعريف المجموعات والمحتوى المحدث
         const datasets = {
             shapes: ['🔴', '🟦', '🔺', '🟢', '⭐', '🔶', '⬛', '🟣'],
+            fruits: ['🍎', '🍌', '🍊', '🍓', '🍇', '🍉', '🍍', '🥝', '🍒', '🍑'],
+            vegetables: ['🥦', '🥕', '🌽', '🥒', '🍅', '🥔', '🍆', '🧄'],
+            animals: ['🦁', '🐯', '🐘', '🐵', '🐱', '🐶', '🦊', '🐰', '🐼', '🐸', '🐮', '🐴'],
+            cartoons: ['🤖', '🦄', '🦸‍♂️', '🧜‍♀️', '🐲', '👾', '🐻', '🤡', '🎃', '👑'],
             arabicLetters: ['أ', 'ب', 'ت', 'ث', 'ج', 'ح', 'خ', 'د', 'ذ', 'ر', 'ز', 'س', 'ش', 'ص', 'ض', 'ط', 'ظ', 'ع', 'غ', 'ف', 'ق', 'ك', 'ل', 'م', 'ن', 'هـ', 'و', 'ي'],
             englishLetters: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'],
             hindiNumbers: ['١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩', '٠'],
@@ -274,7 +290,6 @@
         const successSounds = ['Shatoura.mp3', 'Mumaiaza.mp3', 'Amazing.mp3'];
         const errorSounds = ['Wrong.mp3', 'TryAgain.mp3'];
 
-        // 3. حل مشكلة AudioContext: إنشاء الكائن كسكون وتهيئته عند الحاجة فقط
         let audioCtx = null;
 
         function getAudioContext() {
@@ -311,9 +326,7 @@
                     osc.start();
                     osc.stop(ctx.currentTime + 0.4);
                 }
-            } catch (e) {
-                // تجنب التوقف في حال قيود المتصفح الصارمة
-            }
+            } catch (e) {}
         }
 
         function playRandomSound(soundList, isSuccess) {
@@ -326,8 +339,11 @@
             const list = datasets[currentCategory];
             const val = list[Math.floor(Math.random() * list.length)];
             
+            // الأقسام التي تحتوي على إيموجي ومجسمات ملونة لا يُطبق عليها لون النصوص
+            const isEmojiCategory = ['shapes', 'fruits', 'vegetables', 'animals', 'cartoons'].includes(currentCategory);
+
             let color = '#222222';
-            if (isColorMode && currentCategory !== 'shapes') {
+            if (isColorMode && !isEmojiCategory) {
                 color = colorPalette[Math.floor(Math.random() * colorPalette.length)];
             }
 
@@ -395,7 +411,7 @@
             gridElement.style.gridTemplateColumns = `repeat(${gridSize}, 1fr)`;
             gridElement.style.gridTemplateRows = `repeat(${gridSize}, 1fr)`;
 
-            let fontSize = currentLevel === 3 ? '19px' : '25px';
+            let fontSize = currentLevel === 3 ? '18px' : '23px';
 
             gridElement.innerHTML = '';
             for (let r = 0; r < gridSize; r++) {
